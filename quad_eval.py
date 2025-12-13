@@ -1,7 +1,6 @@
 import argparse
 import os
 import pickle
-from importlib import metadata
 from envs.Quadruped import QuadrupedEnv
 
 import torch

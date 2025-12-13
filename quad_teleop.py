@@ -67,7 +67,7 @@ def main():
         logging_level="warning",
     )
 
-    log_dir = f"/Users/nkayslaptop/Desktop/Master's Program/Reinforcement learning/Final Project/GPT-Reward/Quadruped-motion/logs/{args.exp_name}"
+    log_dir = f"./logs/{args.exp_name}"
     cfg_path = os.path.join(log_dir, "cfgs.pkl")
     env_cfg, obs_cfg, reward_cfg, command_cfg, train_cfg = pickle.load(open(cfg_path, "rb"))
     # env_cfg, obs_cfg, reward_cfg, command_cfg, train_cfg = pickle.load(open(f"genesis/logs/{args.exp_name}/cfgs.pkl", "rb"))

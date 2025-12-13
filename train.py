@@ -40,13 +40,11 @@ def get_train_cfg(exp_name, max_iterations):
             "log_interval": 1,
             "policy_class_name": "ActorCritic",
             "record_interval": -1,
-            "resume": True,
-            "resume_path": f"./logs/{exp_name}",
         },
         "class_name": "OnPolicyRunner",
         "experiment_name": exp_name,
         "run_name": "quadruped_motion",
-        "save_interval": 100,
+        "save_interval": 300,
         "num_steps_per_env": 24,
         "seed": 1,
         "logger": "tensorboard",
@@ -171,7 +169,7 @@ def main():
         reward_cfg=reward_cfg,
         command_cfg=command_cfg,
         device=args.device,
-        show_viewer=True,
+        show_viewer=False,
     )
 
     runner = OnPolicyRunner(env, train_cfg, log_dir, device=args.device)
