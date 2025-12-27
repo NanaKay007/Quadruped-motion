@@ -147,6 +147,7 @@ class QuadrupedEnv(VecEnv):
                 self.obs_scales["lin_vel"],
                 self.obs_scales["lin_vel"],
                 self.obs_scales["ang_vel"],
+                self.obs_scales["dof_pos"]
             ],
             device=self.device,
             dtype=gs.tc_float,
@@ -176,8 +177,8 @@ class QuadrupedEnv(VecEnv):
             dtype=gs.tc_float,
         )
 
-        self.jump_toggled_buf = torch.zeros((self.num_envs,), device=self.device)
-        self.jump_target_height = torch.zeros((self.num_envs,), device=self.device)
+        self.crouch_toggled_buf = torch.zeros((self.num_envs,), device=self.device)
+        # self.jump_target_height = torch.zeros((self.num_envs,), device=self.device)
 
         self.extras = dict()  # extra information for logging
         self.extras["observations"] = dict()
@@ -204,6 +205,7 @@ class QuadrupedEnv(VecEnv):
         if len(envs_indx) == 0:
             return
 
+        # print(f"Resetting envs: {envs_indx}")
         # reset robot dofs
         self.dof_pos[envs_indx] = self.default_dof_pos
         self.dof_vel[envs_indx] = 0.0
@@ -238,8 +240,8 @@ class QuadrupedEnv(VecEnv):
         self.last_actions[envs_indx] = 0.0
         self.last_dof_vel[envs_indx] = 0.0
         self.reset_buf[envs_indx] = True
-        self.jump_toggled_buf[envs_indx] = 0.0
-        self.jump_target_height[envs_indx] = 0.0
+        self.crouch_toggled_buf[envs_indx] = 0.0
+        # self.jump_target_height[envs_indx] = 0.0
         self.episode_length_buf[envs_indx] = 0
 
         self.extras["episode"] = {}
@@ -251,9 +253,6 @@ class QuadrupedEnv(VecEnv):
             self.episode_sums[key][envs_indx] = 0.0
 
         self._sample_commands(envs_indx)
-
-        # set target height command to default height
-        # self.commands[envs_indx, 3] = self.reward_cfg["base_height_target"]
 
     def step(self, actions, is_train=True):
         # take action after clipping
@@ -322,8 +321,8 @@ class QuadrupedEnv(VecEnv):
             > self.env_cfg["termination_if_pitch_greater_than"]
         )
         # if torch.any(self.reset_buf):
-            # import IPython; IPython.embed()
-            # print(f"terminated envs due to pitch: {self.reset_buf}")
+        #     import IPython; IPython.embed()
+        #     print(f"terminated envs due to pitch: {self.reset_buf}")
             
         self.reset_buf |= (
             torch.abs(self.base_euler[:, 0])
@@ -335,7 +334,6 @@ class QuadrupedEnv(VecEnv):
         #     import IPython; IPython.embed()
         # print(f"terminated envs due to roll: {self.reset_buf}")
 
-        # why this? #TODO
         time_out_idx = (
             (self.episode_length_buf > self.max_episode_length)
             .nonzero(as_tuple=False)
@@ -408,7 +406,17 @@ class QuadrupedEnv(VecEnv):
 
     def _reward_base_height(self):
         # Penalize base height away from target
-        return torch.square(self.base_pos[:, 2] - self.reward_cfg["base_height_target"])
+        target_height = torch.where(
+            self.commands[:, 3] > 0.0, self.reward_cfg["crouch_height"], self.reward_cfg["base_height_target"]
+        )
+        print(target_height)
+        base_height_error = torch.square(self.base_pos[:, 2] - target_height)
+        return base_height_error
+    
+    def _reward_orientation(self):
+        # Reward upright base orientation
+        orientation_error =  torch.abs(self.base_euler[:, 0]) + torch.abs(self.base_euler[:, 1]) + torch.abs(self.base_euler[:, 2])
+        return torch.exp(-orientation_error / self.reward_cfg["tracking_sigma"] )
 
     def get_observations(self):
         return TensorDict(
@@ -420,7 +428,7 @@ class QuadrupedEnv(VecEnv):
     def _sample_commands(self, envs_idx):
         """
         Sample new commands for each environment
-        command format: [lin_vel_x, lin_vel_y, ang_vel, height]
+        command format: [lin_vel_x, lin_vel_y, ang_vel, crouch_toggle]
         """
         self.commands[envs_idx, 0] = gs_rand_float(
             *self.command_cfg["lin_vel_x_range"], (len(envs_idx),), self.device
@@ -431,7 +439,11 @@ class QuadrupedEnv(VecEnv):
         self.commands[envs_idx, 2] = gs_rand_float(
             *self.command_cfg["ang_vel_range"], (len(envs_idx),), self.device
         )
-        # self.commands[envs_idx, 4] = 0.0
+
+        self.commands[envs_idx, 3] = torch.round(gs_rand_float(
+                *self.command_cfg["height_range"], (len(envs_idx),), self.device
+            ))
+        # print(f"Sampled new commands for envs {envs_idx}: {self.commands[envs_idx]}")
 
     def _set_gains_and_damping(self):
         self.robot.set_dofs_kp([self.env_cfg["kp"]] * self.num_actions, self.dofs_idx)
