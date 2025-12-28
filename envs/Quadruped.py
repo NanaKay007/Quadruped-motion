@@ -93,9 +93,7 @@ class QuadrupedEnv(VecEnv):
         self.inv_base_init_quat = inv_quat(self.base_init_quat)
         self.robot = self.scene.add_entity(
             gs.morphs.MJCF(
-                file="/Users/nkayslaptop/Desktop/Master's Program/Reinforcement learning/Final Project/GPT-Reward/robots/boston_dynamics_spot/scene.xml",
-                # pos=self.base_init_pos.cpu().numpy(),
-                # quat=self.base_init_quat.cpu().numpy(),
+                file="./robots/boston_dynamics_spot/spot.xml",
             )
         )
         self.scene.build(n_envs=self.num_envs)
@@ -313,26 +311,16 @@ class QuadrupedEnv(VecEnv):
 
         # check termination conditions
         self.reset_buf = self.episode_length_buf > self.max_episode_length
-        # if torch.any(self.reset_buf):
-            # print(f"terminated envs due to max episode length: {self.reset_buf}")
         
         self.reset_buf |= (
             torch.abs(self.base_euler[:, 1])
             > self.env_cfg["termination_if_pitch_greater_than"]
         )
-        # if torch.any(self.reset_buf):
-        #     import IPython; IPython.embed()
-        #     print(f"terminated envs due to pitch: {self.reset_buf}")
             
         self.reset_buf |= (
             torch.abs(self.base_euler[:, 0])
             > self.env_cfg["termination_if_roll_greater_than"]
         )
-        # if torch.any(self.reset_buf):
-        #     print(f"terminated envs due to roll: {self.reset_buf}")
-        # if torch.any(self.reset_buf):
-        #     import IPython; IPython.embed()
-        # print(f"terminated envs due to roll: {self.reset_buf}")
 
         time_out_idx = (
             (self.episode_length_buf > self.max_episode_length)
@@ -406,10 +394,11 @@ class QuadrupedEnv(VecEnv):
 
     def _reward_base_height(self):
         # Penalize base height away from target
-        target_height = torch.where(
-            self.commands[:, 3] > 0.0, self.reward_cfg["crouch_height"], self.reward_cfg["base_height_target"]
-        )
-        print(target_height)
+        # target_height = torch.where(
+        #     self.commands[:, 3] > 0.0, self.reward_cfg["crouch_height"], self.reward_cfg["base_height_target"]
+        # )
+        target_height = self.commands[:, 3]
+        # print(target_height)
         base_height_error = torch.square(self.base_pos[:, 2] - target_height)
         return base_height_error
     
@@ -440,9 +429,9 @@ class QuadrupedEnv(VecEnv):
             *self.command_cfg["ang_vel_range"], (len(envs_idx),), self.device
         )
 
-        self.commands[envs_idx, 3] = torch.round(gs_rand_float(
+        self.commands[envs_idx, 3] = gs_rand_float(
                 *self.command_cfg["height_range"], (len(envs_idx),), self.device
-            ))
+            )
         # print(f"Sampled new commands for envs {envs_idx}: {self.commands[envs_idx]}")
 
     def _set_gains_and_damping(self):

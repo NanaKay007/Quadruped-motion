@@ -122,9 +122,9 @@ def get_cfgs():
             "tracking_ang_vel": 1.0,
             "lin_vel_z": -0.05,
             "base_height": -50.0,
-            "action_rate": -0.01,
-            "similar_to_default": -0.25,
-            "orientation": -0.3,
+            "action_rate": -0.005,
+            "similar_to_default": -0.18,
+            "orientation": -0.002,
         },
     }
     command_cfg = {
@@ -132,7 +132,7 @@ def get_cfgs():
         "lin_vel_x_range": [-1.0, 2.0],
         "lin_vel_y_range": [-0.5, 0.5],
         "ang_vel_range": [-0.6, 0.6],
-        "height_range": [0,1]
+        "height_range": [0.25,0.75]
     }
 
     return env_cfg, obs_cfg, reward_cfg, command_cfg

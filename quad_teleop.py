@@ -105,7 +105,7 @@ def main():
 
     obs, _ = env.reset()
     
-    env.commands = torch.tensor([[lin_x, lin_y, ang_z, crouch_toggle]]).to("mps").repeat(num_envs, 1)
+    env.commands = torch.tensor([[lin_x, lin_y, ang_z, 0.55]]).to("mps").repeat(num_envs, 1)
     iter = 0
 
     images_buffer = []
@@ -113,13 +113,10 @@ def main():
     with torch.no_grad():
         while not stop:
             actions = policy(obs)
-            print(crouch_toggle)
-            # height = 0.55 if crouch_toggle == 0 else 0.3
-            env.commands = torch.tensor([[lin_x, lin_y, ang_z, crouch_toggle]], dtype=torch.float).to("mps").repeat(num_envs, 1)
+            height = 0.55 if crouch_toggle == 0 else 0.3
+            env.commands = torch.tensor([[lin_x, lin_y, ang_z, height]], dtype=torch.float).to("mps").repeat(num_envs, 1)
             obs, rews, dones, infos = env.step(actions, is_train=False)
-            print(dones)
-            # if np.round(height,2) == 0.35:
-            # import IPython; IPython.embed()
+
             iter += 1
             
             # Render the camera
