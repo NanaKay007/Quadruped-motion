@@ -58,7 +58,7 @@ class QuadrupedEnv(VecEnv):
                 camera_pos=(3.5, 0.0, 2.5),
                 camera_lookat=(0.0, 0.0, 0.5),
                 camera_fov=40,
-                max_FPS=30,
+                max_FPS=30, 
             ),
             rigid_options=gs.options.RigidOptions(
                 dt=self.dt,

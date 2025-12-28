@@ -113,7 +113,7 @@ def main():
     with torch.no_grad():
         while not stop:
             actions = policy(obs)
-            height = 0.55 if crouch_toggle == 0 else 0.3
+            height = 0.55 if crouch_toggle == 0 else 0.4
             env.commands = torch.tensor([[lin_x, lin_y, ang_z, height]], dtype=torch.float).to("mps").repeat(num_envs, 1)
             obs, rews, dones, infos = env.step(actions, is_train=False)
 
