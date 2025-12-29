@@ -29,8 +29,8 @@ def get_train_cfg(exp_name, max_iterations):
         "policy": {
             "class_name": "ActorCritic",
             "activation": "elu",
-            "actor_hidden_dims": [512, 256, 128],
-            "critic_hidden_dims": [512, 256, 128],
+            "actor_hidden_dims": [512, 256, 256, 128],
+            "critic_hidden_dims": [512, 256, 256, 128],
             "init_noise_std": 1.0,
         },
         "runner": {
@@ -44,7 +44,7 @@ def get_train_cfg(exp_name, max_iterations):
         "class_name": "OnPolicyRunner",
         "experiment_name": exp_name,
         "run_name": "quadruped_motion",
-        "save_interval": 300,
+        "save_interval": 200,
         "num_steps_per_env": 24,
         "seed": 1,
         "logger": "tensorboard",
@@ -94,7 +94,7 @@ def get_cfgs():
         "force_upper": 100,
         # termination
         "termination_if_roll_greater_than": 10,  # degree
-        "termination_if_pitch_greater_than": 10,
+        "termination_if_pitch_greater_than": 13,
         # base pose
         "base_init_pos": [0.0, 0.0, 0.5546],
         "base_init_quat": [1.0, 0.0, 0.0, 0.0],
@@ -105,7 +105,7 @@ def get_cfgs():
         "clip_actions": 100.0,
     }
     obs_cfg = {
-        "num_obs": 45,
+        "num_obs": 46,
         "obs_scales": {
             "lin_vel": 2.0,
             "ang_vel": 0.25,
@@ -115,24 +115,24 @@ def get_cfgs():
     }
     reward_cfg = {
         "tracking_sigma": 0.25,
-        "base_height_target": 0.5,
-        "feet_height_target": 0.075,
-        # "jump_upward_velocity": 1.2,
-        # "jump_reward_steps": 50,
+        "base_height_target": 0.55,
+        "crouch_height": 0.25,
         "reward_scales": {
             "tracking_lin_vel": 1.0,
-            "tracking_ang_vel": 0.2,
-            "lin_vel_z": -1.0,
+            "tracking_ang_vel": 1.0,
+            "lin_vel_z": -0.05,
             "base_height": -50.0,
             "action_rate": -0.005,
-            "similar_to_default": -0.1,
+            "similar_to_default": -0.18,
+            "orientation": -0.002,
         },
     }
     command_cfg = {
-        "num_commands": 3,
+        "num_commands": 4,
         "lin_vel_x_range": [-1.0, 2.0],
         "lin_vel_y_range": [-0.5, 0.5],
         "ang_vel_range": [-0.6, 0.6],
+        "height_range": [0.25,0.75]
     }
 
     return env_cfg, obs_cfg, reward_cfg, command_cfg
@@ -142,7 +142,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--exp_name", type=str, default="quadruped_walking")
     parser.add_argument("-B", "--num_envs", type=int, default=4096)
-    parser.add_argument("--max_iterations", type=int, default=10000)
+    parser.add_argument("--max_iterations", type=int, default=5000)
+    parser.add_argument("--show_viewer", action="store_true")
+    
     parser.add_argument(
         "--device",
         type=str,
@@ -169,7 +171,7 @@ def main():
         reward_cfg=reward_cfg,
         command_cfg=command_cfg,
         device=args.device,
-        show_viewer=False,
+        show_viewer=args.show_viewer,
     )
 
     runner = OnPolicyRunner(env, train_cfg, log_dir, device=args.device)
