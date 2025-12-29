@@ -93,7 +93,7 @@ class QuadrupedEnv(VecEnv):
         self.inv_base_init_quat = inv_quat(self.base_init_quat)
         self.robot = self.scene.add_entity(
             gs.morphs.MJCF(
-                file="./robots/boston_dynamics_spot/spot.xml",
+                file="../robots/boston_dynamics_spot/spot.xml",
             )
         )
         self.scene.build(n_envs=self.num_envs)
