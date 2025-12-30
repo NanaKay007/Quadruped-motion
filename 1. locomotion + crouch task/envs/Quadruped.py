@@ -28,12 +28,14 @@ class QuadrupedEnv(VecEnv):
         device,
         show_viewer=False,
         add_camera=False,
+        custom_command_sampler=None
     ):
         self.num_envs = num_envs
         self.env_cfg = env_cfg
         self.obs_cfg = obs_cfg
         self.reward_cfg = reward_cfg
         self.command_cfg = command_cfg
+        self.custom_command_sampler = custom_command_sampler
         self.cfg = {
             "env_cfg": env_cfg,
             "obs_cfg": obs_cfg,
@@ -419,6 +421,10 @@ class QuadrupedEnv(VecEnv):
         Sample new commands for each environment
         command format: [lin_vel_x, lin_vel_y, ang_vel, crouch_toggle]
         """
+        if self.custom_command_sampler is not None:
+            commands = self.custom_command_sampler(self, envs_idx)
+            self.commands[envs_idx] = commands
+            return
         self.commands[envs_idx, 0] = gs_rand_float(
             *self.command_cfg["lin_vel_x_range"], (len(envs_idx),), self.device
         )
