@@ -44,7 +44,7 @@ def get_train_cfg(exp_name, max_iterations):
         "class_name": "OnPolicyRunner",
         "experiment_name": exp_name,
         "run_name": "quadruped_motion",
-        "save_interval": 200,
+        "save_interval": 500,
         "num_steps_per_env": 24,
         "seed": 1,
         "logger": "tensorboard",
@@ -142,7 +142,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--exp_name", type=str, default="quadruped_walking")
     parser.add_argument("-B", "--num_envs", type=int, default=4096)
-    parser.add_argument("--max_iterations", type=int, default=5000)
+    parser.add_argument("-i", "--max_iterations", type=int, default=7200)
+    parser.add_argument("--ckpt", type=int, default=None)
     parser.add_argument("--show_viewer", action="store_true")
     
     parser.add_argument(
@@ -175,6 +176,11 @@ def main():
     )
 
     runner = OnPolicyRunner(env, train_cfg, log_dir, device=args.device)
+    
+    if args.ckpt is not None:
+        print("Loading checkpoint:", args.ckpt)
+        resume_path = os.path.join(log_dir, f"model_{args.ckpt}.pt")
+        runner.load(resume_path)
 
     pickle.dump(
         [env_cfg, obs_cfg, reward_cfg, command_cfg, train_cfg],

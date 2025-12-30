@@ -1,4 +1,4 @@
-from matplotlib.pylab import f
+
 import numpy as np
 from rsl_rl.env.vec_env import VecEnv
 import genesis as gs
