@@ -10,10 +10,13 @@ Then it was time to build! Instead of building from scratch, I picked a reinforc
 
 * Studying the Genesis Physics Simulation API, and using the latest version for my experiments.
 * Replacing the Go robot with Spot (without the end-effector), and selecting a suitable set of joint angles allowing the robot to achieve a stable standing pose. This is crucial for training, especially when environments need to be reset.
-* Extending the training loop to learn control beyond x-y linear and z-angular rotation commands (allowing the robot to move forwards, backwards and yaw on either side) to include a "crouch" toggle command so that Spot plays fetch :)
+* Extending the training loop and tweaking reward signals to learn control beyond x-y linear and z-angular rotation commands (allowing the robot to move forwards, backwards and yaw on either side) to include a "crouch" toggle command so that Spot plays fetch :)
 
 ![Demonstration](./demos/untuned-crouch-quadruped.gif)
 Teleoperation demo recorded at 4x speed
 
 ## Observations
-Extending the set of commands significantly increases the difficulty of the learning task. After including the crouch command, I observed a decrease in policy quality: jittery motion even for zero-valued command inputs. Attemping an improvised fine-tuning strategy helped reduce jitter, but also impacted the policy's ability to properly respond to certain commmands (like the yaw command)
+Extending the set of commands significantly increases the difficulty of the learning task. After including the crouch command, I observed a decrease in policy quality: jittery motion even for zero-valued command inputs. Attemping an improvised fine-tuning strategy helped reduce jitter, but also impacted the policy's ability to properly respond to certain commmands (like the yaw command).
+
+## Uncommited Future work
+Reward-based learning is difficult to engineer for complex tasks. What if Spot needs to learn to pick-up objects? Better to learn from demo videos than to create reward functions for that task. 
