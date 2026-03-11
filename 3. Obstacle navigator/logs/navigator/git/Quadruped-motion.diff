@@ -1,0 +1,38 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .gitignore
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.python-version
+	1. locomotion + crouch task/__pyinit__.py
+	2. Imitation-based locomotion/
+	3. Obstacle navigator/
+	4. Graph-based morphology control/
+	config.yaml
+	pyproject.toml
+	uv.lock
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/.gitignore b/.gitignore
+index c507c35..db352c7 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,4 +1,6 @@
+ __pycache__
+ .DS_Store
+ .vscode
+-events.out.*
+\ No newline at end of file
++events.out.*
++.claude
++**/.venv
+\ No newline at end of file
