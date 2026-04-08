@@ -15,6 +15,11 @@ env:
     - fr_kn
     - hl_kn
     - hr_kn
+  sensor_params:
+    lookat: [5,1,0.3]
+    pos: [0,0,0.3]
+    euler_offset: [0,0,0]
+    fov: 70
   default_joint_angles:  # [rad]
     fl_hx: 0.0
     fr_hx: 0.0

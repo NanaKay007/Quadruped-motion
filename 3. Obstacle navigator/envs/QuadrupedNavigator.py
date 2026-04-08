@@ -146,29 +146,30 @@ class QuadrupedNavigatorEnv(VecEnv):
                 file="../robots/boston_dynamics_spot/spot.xml",
             )
         )
-        pos_offset = (0.3, 0.0, 0.1)
 
+        sensor_env_params = self.env_cfg["sensor_params"]
         sensor_kwargs = dict(
             entity_idx=self.robot.idx,
-            pos_offset=pos_offset,
-            euler_offset=(0.0, 0.0, 0.0),
-            return_world_frame=True,
+            lookat=sensor_env_params["lookat"],
+            pos=sensor_env_params["pos"],
             draw_debug=True,
+            euler_offset=sensor_env_params["euler_offset"],
+            link_idx_local=0,
+            fov=sensor_env_params["fov"],
         )
 
-        sensor = self.scene.add_sensor(
-            gs.sensors.DepthCamera(
-                pattern=gs.sensors.DepthCameraPattern(), **sensor_kwargs
+        sensor = self.scene.add_sensor(gs.sensors.RasterizerCameraOptions(**sensor_kwargs))
+        def read_sensor_cpu():
+            data = sensor.read().rgb
+            return data.cpu()
+
+        self.scene.start_recording(
+            read_sensor_cpu,
+            gs.recorders.MPLImagePlot(
+                show_window=True
             )
         )
-        self.scene.start_recording(
-            data_func=(
-                (lambda: sensor.read_image()[0])
-                if self.num_envs > 0
-                else sensor.read_image
-            ),
-            rec_options=gs.recorders.MPLImagePlot(),
-        )
+        
         self.scene.build(n_envs=self.num_envs)
         self.dofs_idx = [
             self.robot.get_joint(name).dof_idx_local
